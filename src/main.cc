@@ -9,6 +9,7 @@
 #include <map>
 #include <vector>
 
+#if 0
 #include "clang/Basic/DiagnosticOptions.h"
 #include "clang/CodeGen/CodeGenAction.h"
 #include "clang/Driver/Compilation.h"
@@ -485,3 +486,31 @@ int main(int argc, char **argv)
 
   return ret;
 }
+
+#else
+
+#include <cstdio>
+#include <cstdlib>
+#include <iostream>
+#include <clang-c/Index.h> 
+
+int main()
+{
+  CXIndex index = clang_createIndex(0, 0);
+  CXTranslationUnit unit = clang_parseTranslationUnit(
+    index,
+    "header.hpp", nullptr, 0,
+    nullptr, 0,
+    CXTranslationUnit_None);
+  if (unit == nullptr)
+  {
+    std::cerr << "Unable to parse translation unit. Quitting." << std::endl;
+    exit(-1);
+  }
+
+  clang_disposeTranslationUnit(unit);
+  clang_disposeIndex(index);
+
+  return 0;
+}
+#endif
