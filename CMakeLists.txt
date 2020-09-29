@@ -66,7 +66,13 @@ function(add_llvm)
   set(LLVM_BUILD_TOOLS OFF CACHE INTERNAL "" FORCE)
   set(LLVM_TARGETS_TO_BUILD "host" CACHE INTERNAL "" FORCE)
   set(LLVM_ENABLE_PROJECTS "clang" CACHE INTERNAL "" FORCE)
-  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/llvm-project/llvm)
+  set(LLVM_ENABLE_TERMINFO OFF CACHE INTERNAL "" FORCE) # disable tinfo library
+
+  # enable rtti and EH
+  set(LLVM_ENABLE_RTTI ON CACHE INTERNAL "" FORCE)
+  set(LLVM_ENABLE_EH ON CACHE INTERNAL "" FORCE)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/llvm-project/llvm EXCLUDE_FROM_ALL)
+
 endfunction()
 
 add_llvm()
@@ -119,6 +125,26 @@ if(MINIJIT_WITH_GUI)
               ${CMAKE_DL_LIBS})
 endif(MINIJIT_WITH_GUI)
 
+set(MINIJIT_LLVM_INCLUDE_DIRS 
+  ${CMAKE_CURRENT_SOURCE_DIR}/third_party/llvm-project/llvm/include
+
+  # build dir
+  ${CMAKE_CURRENT_BINARY_DIR}/third_party/llvm-project/llvm/include
+  )
+
+set(MINIJIT_CLANG_INCLUDE_DIRS 
+  ${CMAKE_CURRENT_SOURCE_DIR}/third_party/llvm-project/clang/include
+
+  # build dir
+  ${CMAKE_CURRENT_BINARY_DIR}/third_party/llvm-project/llvm/tools/clang/include
+  )
+
+
+target_include_directories(${MINIJIT_BUILD_TARGET} PRIVATE ${MINIJIT_LLVM_INCLUDE_DIRS})
+target_include_directories(${MINIJIT_BUILD_TARGET} PRIVATE ${MINIJIT_CLANG_INCLUDE_DIRS})
+target_link_libraries(${MINIJIT_BUILD_TARGET} PRIVATE LLVMAnalysis LLVMScalarOpts LLVMCore LLVMTransformUtils LLVMMCJIT LLVMX86AsmParser LLVMX86CodeGen LLVMX86Desc LLVMX86Info LLVMMC LLVMTarget)
+target_link_libraries(${MINIJIT_BUILD_TARGET} PRIVATE clangCodeGen)
+
 target_link_libraries(${MINIJIT_BUILD_TARGET} PUBLIC ${MINIJIT_EXT_LIBRARIES} ${CMAKE_DL_LIBS})
 target_link_libraries(${MINIJIT_BUILD_TARGET} PRIVATE ${MINIJIT_EXT_GUI_LIBRARIES})
 
@@ -140,7 +166,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     string(APPEND OPTIONAL_CXX_FLAGS " -Wno-delete-non-virtual-dtor ")
   endif ()
 
-  set(CLANG_COMPILE_FLAGS "-Weverything -Werror -Wno-padded -Wno-c++98-compat-pedantic -Wno-documentation -Wno-documentation-unknown-command -Wno-reserved-id-macro -Wno-unused-variable  -Wno-exit-time-destructors -Wno-global-constructors ")
+  set(CLANG_COMPILE_FLAGS "-Weverything -Werror -Wno-padded -Wno-c++98-compat-pedantic -Wno-documentation -Wno-documentation-unknown-command -Wno-reserved-id-macro -Wno-unused-variable  -Wno-exit-time-destructors -Wno-global-constructors -Wno-unused-member-function ")
 
   string(APPEND CLANG_COMPILE_FLAGS ${OPTIONAL_CXX_FLAGS})
 
