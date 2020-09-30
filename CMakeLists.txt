@@ -7,6 +7,8 @@ project(${MINIJIT_BUILD_TARGET} C CXX)
 
 # options
 option(MINIJIT_USE_CCACHE "Use ccache for faster recompile." ON)
+option(MINIJIT_EXTERNAL_LLVM_PROJECT "Use externally built clang/LLVM(recommended for developers)" ON)
+set(MINIJIT_LLVM_PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/dist CACHE STRING "Path to built clang/LLVM")
 set(MINIJIT_CUSTOM_LINKER "" CACHE STRING "Set custom linker name(e.g. 'lld'). Assume the compiler supports `-fuse=ld=` linker flags.")
 
 # cmake modules
@@ -59,27 +61,48 @@ set(MINIJIT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cc
     )
 
-# [llvm and clang]
-function(add_llvm)
-  # ref: https://boxbase.org/entries/2018/jun/11/minimal-llvm-build/
+if (MINIJIT_EXTERNAL_LLVM_PROJECT)
 
-  set(LLVM_BUILD_TOOLS OFF CACHE INTERNAL "" FORCE)
-  set(LLVM_TARGETS_TO_BUILD "host" CACHE INTERNAL "" FORCE)
-  set(LLVM_ENABLE_PROJECTS "clang" CACHE INTERNAL "" FORCE)
-  set(LLVM_ENABLE_TERMINFO OFF CACHE INTERNAL "" FORCE) # disable tinfo library
+  set(MINIJIT_LLVM_INCLUDE_DIRS ${MINIJIT_LLVM_PROJECT_DIR}/include)
+  set(MINIJIT_CLANG_INCLUDE_DIRS ${MINIJIT_LLVM_PROJECT_DIR}/tools/clang/include)
 
-  # enable rtti and EH
-  set(LLVM_ENABLE_RTTI ON CACHE INTERNAL "" FORCE)
-  set(LLVM_ENABLE_EH ON CACHE INTERNAL "" FORCE)
-  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/llvm-project/llvm EXCLUDE_FROM_ALL)
+else (MINIJIT_EXTERNAL_LLVM_PROJECT)
 
-endfunction()
+  # [llvm and clang]
+  function(add_llvm)
+    # ref: https://boxbase.org/entries/2018/jun/11/minimal-llvm-build/
+  
+    set(LLVM_BUILD_TOOLS OFF CACHE INTERNAL "" FORCE)
+    set(LLVM_TARGETS_TO_BUILD "host" CACHE INTERNAL "" FORCE)
+    set(LLVM_ENABLE_PROJECTS "clang" CACHE INTERNAL "" FORCE)
+    set(LLVM_ENABLE_TERMINFO OFF CACHE INTERNAL "" FORCE) # disable tinfo library
+  
+    # enable rtti and EH
+    set(LLVM_ENABLE_RTTI ON CACHE INTERNAL "" FORCE)
+    set(LLVM_ENABLE_EH ON CACHE INTERNAL "" FORCE)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/llvm-project/llvm EXCLUDE_FROM_ALL)
+  
+  endfunction()
+  
+  add_llvm()
 
-add_llvm()
+  set(MINIJIT_LLVM_INCLUDE_DIRS 
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/llvm-project/llvm/include
+  
+    # build dir
+    ${CMAKE_CURRENT_BINARY_DIR}/third_party/llvm-project/llvm/include
+    )
+  
+  set(MINIJIT_CLANG_INCLUDE_DIRS 
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/llvm-project/clang/include
+  
+    # build dir
+    ${CMAKE_CURRENT_BINARY_DIR}/third_party/llvm-project/llvm/tools/clang/include
+    )
+endif (MINIJIT_EXTERNAL_LLVM_PROJECT)
 
 add_executable(${MINIJIT_BUILD_TARGET} ${MINIJIT_SOURCES} ${MINIJIT_DEP_SOURCES} ${MINIJIT_GUI_SOURCES})
 add_sanitizers(${MINIJIT_BUILD_TARGET})
-
 
 # custom linker
 if( MINIJIT_CUSTOM_LINKER )
@@ -125,25 +148,29 @@ if(MINIJIT_WITH_GUI)
               ${CMAKE_DL_LIBS})
 endif(MINIJIT_WITH_GUI)
 
-set(MINIJIT_LLVM_INCLUDE_DIRS 
-  ${CMAKE_CURRENT_SOURCE_DIR}/third_party/llvm-project/llvm/include
-
-  # build dir
-  ${CMAKE_CURRENT_BINARY_DIR}/third_party/llvm-project/llvm/include
-  )
-
-set(MINIJIT_CLANG_INCLUDE_DIRS 
-  ${CMAKE_CURRENT_SOURCE_DIR}/third_party/llvm-project/clang/include
-
-  # build dir
-  ${CMAKE_CURRENT_BINARY_DIR}/third_party/llvm-project/llvm/tools/clang/include
-  )
-
 
 target_include_directories(${MINIJIT_BUILD_TARGET} PRIVATE ${MINIJIT_LLVM_INCLUDE_DIRS})
 target_include_directories(${MINIJIT_BUILD_TARGET} PRIVATE ${MINIJIT_CLANG_INCLUDE_DIRS})
-target_link_libraries(${MINIJIT_BUILD_TARGET} PRIVATE LLVMAnalysis LLVMScalarOpts LLVMCore LLVMTransformUtils LLVMMCJIT LLVMX86AsmParser LLVMX86CodeGen LLVMX86Desc LLVMX86Info LLVMMC LLVMTarget)
-target_link_libraries(${MINIJIT_BUILD_TARGET} PRIVATE libclang)
+
+if (MINIJIT_EXTERNAL_LLVM_PROJECT)
+  # For libLLVM.so and libclang.so
+  target_link_directories(${MINIJIT_BUILD_TARGET} PRIVATE ${MINIJIT_LLVM_PROJECT_DIR}/lib)
+
+  # libclang.so
+  set(MINIJIT_CLANG_LIB clang)
+
+  # use all-in-one libLLVM.so
+  set(MINIJIT_LLVM_LIBS LLVM)
+else()
+  # Use clang's cmake target
+  set(MINIJIT_CLANG_LIB libclang)
+
+  # Use .a's
+  set(MINIJIT_LLVM_LIBS LLVMAnalysis LLVMScalarOpts LLVMCore LLVMTransformUtils LLVMMCJIT LLVMX86AsmParser LLVMX86CodeGen LLVMX86Desc LLVMX86Info LLVMMC LLVMTarget)
+endif ()
+
+target_link_libraries(${MINIJIT_BUILD_TARGET} PRIVATE ${MINIJIT_LLVM_LIBS})
+target_link_libraries(${MINIJIT_BUILD_TARGET} PRIVATE ${MINIJIT_CLANG_LIB})
 
 target_link_libraries(${MINIJIT_BUILD_TARGET} PUBLIC ${MINIJIT_EXT_LIBRARIES} ${CMAKE_DL_LIBS})
 target_link_libraries(${MINIJIT_BUILD_TARGET} PRIVATE ${MINIJIT_EXT_GUI_LIBRARIES})
