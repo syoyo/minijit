@@ -2,6 +2,8 @@ builddir=`pwd`/build-llvm-clang-cl
 rm -rf ${builddir}
 mkdir ${builddir}
 
+dist_dir=`pwd`/dist-win64-cl
+
 cd ${builddir}
 cmake -G Ninja \
   -DCMAKE_TOOLCHAIN_FILE="../cmake/clang-cl-msvc-wsl.cmake" \
