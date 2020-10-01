@@ -156,8 +156,13 @@ if (MINIJIT_EXTERNAL_LLVM_PROJECT)
   # For libLLVM.so and libclang.so
   target_link_directories(${MINIJIT_BUILD_TARGET} PRIVATE ${MINIJIT_LLVM_PROJECT_DIR}/lib)
 
-  # libclang.so
-  set(MINIJIT_CLANG_LIB clang)
+  if (WIN32)
+    # liblibclang.dll.a
+    set(MINIJIT_CLANG_LIB libclang)
+  else ()
+    # libclang.so
+    set(MINIJIT_CLANG_LIB clang)
+  endif()
 
   # use all-in-one libLLVM.so
   set(MINIJIT_LLVM_LIBS LLVM)
@@ -215,6 +220,17 @@ endif (MINIJIT_BUILD_TESTS)
 
 # postbuild
 if (WIN32)
+  
+  # for convienience. uncomment these if it does not work well on your system
+  if (MINIJIT_EXTERNAL_LLVM_PROJECT)
+    # Copy libclang.dll and libc++.dll
+    add_custom_command(TARGET ${MINIJIT_BUILD_TARGET} POST_BUILD        # Adds a post-build event to MyTest
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different  # which executes "cmake - E copy_if_different..."
+        "${MINIJIT_LLVM_PROJECT_DIR}/bin/libclang.dll"      # src
+         $<TARGET_FILE_DIR:${MINIJIT_BUILD_TARGET}>)           # dest
+
+  endif ()
+  
   if (LLVM_MINGW_ROOT_ABSPATH)
 
     # Copy libunwind.dll and libc++.dll
