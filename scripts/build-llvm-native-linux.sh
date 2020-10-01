@@ -1,12 +1,18 @@
 #!/bin/bash
 
+#
+# Purpose:
+#
+# Build native clang-tblgen, llvm-tblgen, etc whose are required to cross-compile libclang/libLLVM for Windows on Linux.
+# (Usually, clang-tblgen is not available in prebult clang/LLVM package)
+#
+
 curdir=`pwd`
 distdir=`pwd`/dist-llvm-native
 builddir=`pwd`/build-llvm-native
 
 rm -rf ${builddir}
 mkdir ${builddir}
-
 
 # -DLLVM_OPTIMIZED_TABLEGEN=On : Without this, tblgen may become too slow to run
 
@@ -20,5 +26,5 @@ cd ${builddir} && cmake -G Ninja -S ../third_party/llvm-project/llvm \
 
 cmake --build ${builddir} && cmake --build ${builddir} --target install
 
-# clang-tblgen need to be manually copied 
+# clang-tblgen need to be manually copied
 cp ${builddir}/bin/clang-tblgen ${distdir}/bin/
