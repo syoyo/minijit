@@ -160,12 +160,16 @@ if (MINIJIT_EXTERNAL_LLVM_PROJECT)
     # liblibclang.dll.a
     set(MINIJIT_CLANG_LIB libclang)
   else ()
-    # libclang.so
-    set(MINIJIT_CLANG_LIB clang)
+    # Disable linking both LLVM.so and clang.so due to the following error at runtime.
+    # : CommandLine Error: Option 'help-list' registered more than once!
+    # LLVM ERROR: inconsistency in registered CommandLine options 
+
+    set(MINIJIT_CLANG_LIB clangAnalysis clangDriver clangEdit clangAST clangASTMatchers clangBasic clangCodeGen clangFrontend clangFrontendTool clangLex clangSema clang clangParse clangTooling clangSerialization)
   endif()
 
   # use all-in-one libLLVM.so
   set(MINIJIT_LLVM_LIBS LLVM)
+  #set(MINIJIT_LLVM_LIBS LLVMAnalysis LLVMScalarOpts LLVMCore LLVMTransformUtils LLVMMCJIT LLVMX86AsmParser LLVMX86AsmPrinter LLVMX86CodeGen LLVMX86Desc LLVMX86Info LLVMX86Utils LLVMAsmPrinter LLVMMC LLVMMCJIT LLVMTarget)
 else()
   # Use clang's cmake target
   set(MINIJIT_CLANG_LIB libclang)

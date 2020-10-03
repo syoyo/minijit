@@ -9,7 +9,7 @@
 #include <map>
 #include <vector>
 
-#if 0
+#if 1
 #include "clang/Basic/DiagnosticOptions.h"
 #include "clang/CodeGen/CodeGenAction.h"
 #include "clang/Driver/Compilation.h"
@@ -464,6 +464,8 @@ int main(int argc, char **argv)
 {
   (void)argc;
   (void)argv;
+
+  std::cout << "init\n" << std::flush;
 
   // Initialize LLVM JIT system
   llvm::InitializeNativeTarget();
