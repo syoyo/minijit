@@ -2,6 +2,7 @@
 
 ## Targets
 
+* Linux binary
 * CUDA(PTX)
 
 ## Supported platform
