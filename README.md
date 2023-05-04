@@ -27,6 +27,13 @@
 I recommend to build libclang and libLLVM as a separated build for developing minijit.
 
 ```
+$ git submodule update --init --recursive
+```
+
+to checkout `llvm-project` source repo.
+Then,
+
+```
 $ ./scripts/build-llvm-clang-linux.sh
 ```
 
