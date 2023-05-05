@@ -9,7 +9,7 @@ set -e
 
 # --- config ---
 
-LLVM_MINGW_PATH=${LLVM_MINGW_DIR:-/mnt/data/local/llvm-mingw-20200325-ubuntu-18.04}
+LLVM_MINGW_PATH=${LLVM_MINGW_DIR:-/mnt/nvme01/local/llvm-mingw-20230427-ucrt-ubuntu-20.04-x86_64}
 
 # --------------
 
@@ -28,8 +28,8 @@ CLANG_TBLGEN_PATH=${native_distdir}/bin/clang-tblgen
 LLVM_CONFIG_FILENAME=${native_distdir}/bin/llvm-config
 
 
-# LLVM_BUILD_LLVM_DYLIB=On: build libLLVM.dll
 # turn off libxml2 since it requires iconv library
+# Assertion is disabled in this build, but you can enable it if you want.
 cd ${builddir} && cmake -G Ninja ../third_party/llvm-project/llvm \
    -DCMAKE_VERBOSE_MAKEFILE=1 \
    -DCMAKE_BUILD_TYPE=MinSizeRel \
@@ -53,8 +53,8 @@ cd ${builddir} && cmake -G Ninja ../third_party/llvm-project/llvm \
    -DLLVM_ENABLE_TERMINFO=OFF \
    -DLLVM_ENABLE_RTTI=ON \
    -DLLVM_ENABLE_EH=On \
-   -DLLVM_BUILD_LLVM_DYLIB=On \
-   -DLLVM_ENABLE_ASSERTIONS=ON && cd ${curdir}
+   -DLLVM_LINK_LLVM_DYLIB=On \
+   -DLLVM_ENABLE_ASSERTIONS=OFF && cd ${curdir}
 
 cmake --build ${builddir} && cmake --build ${builddir} --target install
 

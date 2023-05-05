@@ -8,7 +8,7 @@ set -x
 curdir=`pwd`
 
 # Set path to llvm-mingw in env var.
-export LLVM_MINGW_DIR=/media/lte/local/llvm-mingw-20200325-ubuntu-18.04/
+export LLVM_MINGW_DIR=/mnt/nvme01/local/llvm-mingw-20230427-ucrt-ubuntu-20.04-x86_64/
 
 builddir=${curdir}/build-llvm-mingw
 

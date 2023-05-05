@@ -14,6 +14,7 @@ builddir=`pwd`/build-llvm-native
 rm -rf ${builddir}
 mkdir ${builddir}
 
+# Disable assertion since llvm/clang itself should be enoughly stable.
 # -DLLVM_OPTIMIZED_TABLEGEN=On : Without this, tblgen may become too slow to run
 
 cd ${builddir} && cmake -G Ninja -S ../third_party/llvm-project/llvm \
@@ -22,7 +23,7 @@ cd ${builddir} && cmake -G Ninja -S ../third_party/llvm-project/llvm \
   -DLLVM_TARGETS_TO_BUILD="host" \
   -DCMAKE_BUILD_TYPE=MinSizeRel \
   -DLLVM_OPTIMIZED_TABLEGEN=On \
-  -DLLVM_ENABLE_ASSERTIONS=ON && cd ${curdir}
+  -DLLVM_ENABLE_ASSERTIONS=OFF && cd ${curdir}
 
 cmake --build ${builddir} && cmake --build ${builddir} --target install
 
