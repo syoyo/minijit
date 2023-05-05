@@ -69,11 +69,11 @@ class ShaderJITMemoryManager : public llvm::SectionMemoryManager {
 
  public:
   ShaderJITMemoryManager() {}
-  virtual ~ShaderJITMemoryManager() {}
+  virtual ~ShaderJITMemoryManager() override {}
 
   /// Implements shader function symbol resolver.
   virtual void *getPointerToNamedFunction(const std::string &Name,
-                                          bool AbortOnFailure = true);
+                                          bool AbortOnFailure = true) override;
 
  private:
 };
@@ -310,7 +310,7 @@ bool ShaderInstance::Impl::Compile(const std::string &type,
   const clang::driver::Command &Cmd = clang::cast<clang::driver::Command>(*Jobs.begin());
   if (llvm::StringRef(Cmd.getCreator().getName()) != "clang") {
     Diags.Report(clang::diag::err_fe_expected_clang_command);
-    std::cerr << "clang error\n" << std::endl;
+    llvm::errs() << "clang error\n";
     return false;
   }
 
@@ -333,9 +333,13 @@ bool ShaderInstance::Impl::Compile(const std::string &type,
   //                                     CCArgs.size(),
   //                                   Diags);
 
-  bool Success;
+  bool Success{false};
   Success = clang::CompilerInvocation::CreateFromArgs(
       Clang->getInvocation(), CCArgInputs, Diags);
+  if (!Success) {
+    llvm::errs() << "Failed to create args\n";
+    return false;
+  }
 
   // Show the invocation, with -v.
    if (Clang->getInvocation().getHeaderSearchOpts().Verbose) {
