@@ -84,7 +84,7 @@ void *ShaderJITMemoryManager::getPointerToNamedFunction(const std::string &Name,
   if (!pfn && AbortOnFailure) {
     std::string msg = "Program used external function '" + Name +
                       "' which could not be resolved!";
-    llvm::report_fatal_error(msg);
+    llvm::report_fatal_error(msg.c_str());
   }
   return pfn;
 }

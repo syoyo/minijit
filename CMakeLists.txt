@@ -17,8 +17,8 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/sanitizers)
 find_package(Sanitizers) # Address sanitizer (-DSANITIZE_ADDRESS=ON)
 
-# Require strict C++14
-set(CMAKE_CXX_STANDARD 14)
+# Require strict C++17
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -164,7 +164,7 @@ if (MINIJIT_EXTERNAL_LLVM_PROJECT)
     # : CommandLine Error: Option 'help-list' registered more than once!
     # LLVM ERROR: inconsistency in registered CommandLine options 
 
-    set(MINIJIT_CLANG_LIB clangAnalysis clangDriver clangEdit clangAST clangASTMatchers clangBasic clangCodeGen clangFrontend clangFrontendTool clangLex clangSema clang clangParse clangTooling clangSerialization)
+    set(MINIJIT_CLANG_LIB clangAnalysis clangAPINotes clangDriver clangEdit clangAST clangASTMatchers clangBasic clangCodeGen clangFrontend clangFrontendTool clangLex clangSema clangSupport clang clangParse clangTooling clangSerialization)
   endif()
 
   # use all-in-one libLLVM.so
